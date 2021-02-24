@@ -45,24 +45,37 @@ The 30 required variables, including the name, coding of the variables are liste
 
 | Variables/features         |  dataset column names | Measurements | Coding |
 |:--------------|:---------------|:----------------------|:----------------- |
-|       30-day mortality   |  mortality_30_day            |    Died within 30 days(Yes and no)  |    0-No, 1-Yes           |
 |         Age              | Age_Groups_by5              |      band by 5 from age 15 to age 125     |  levels: 0-20      |
 |               Sex        | Male                        |   Female and Male                |   0-Female, 1-Male           |
 |               Ethnicity   | Code as following       |   White, Black, Asian, Mixed, Other, Uknown           |   One hot encoding (Asian reference)|
 |                         | Ethnicity.Black              |                                   |   if Black, code 1|
-|                         | Ethnicity.Mixed              |                               |   if Mixed, code 1 |
-|                         | Ethnicity.Other              |                               |   if Other, code 1 |
-|                         | Ethnicity.Unknown              |                               |   if Uknown, code 1 |
-|                         | Ethnicity.White              |                               |   if White, code 1 |
+|                         | Ethnicity.Mixed              |                               |   Code 1 if Mixed  |
+|                         | Ethnicity.Other              |                               |    Code 1 if Other |
+|                         | Ethnicity.Unknown              |                               |   Code 1 if Uknown |
+|                         | Ethnicity.White              |                               |   Code 1, if White |
 |Inpatient at time of stroke |Inpatient_at_time_of_stroke |         Yes or No                    | 0-No, 1-Yes            |
-|Hour of admission   | hour_of_admission_4h_band          | 6 Levels, 4 hours band              | One hot encoding       |
-|Day of week of admission | day_of_week_of_admission      | Monday – Sunday             | One hot encoding               |
+|Hour of admission   | Code as following                | 6 Levels, 4 hours band              | One hot encoding (00.00.00.to.03.59.59 as reference) |
+|                    | hour_of_admission_4h_band.04.00.00.to.07.59.59          |               | Code 1 if in 04.00.00.to.07.59.59      |
+|                   | hour_of_admission_4h_band.08.00.00.to.11.59.59           |               |   Code 1 if in 08.00.00.to.11.59.59      |
+|                  | hour_of_admission_4h_band.12.00.00.to.15.59.59           |               |  Code 1 if in 12.00.00.to.15.59.59      |
+|                  | hour_of_admission_4h_band.16.00.00.to.19.59.59           |               | Code 1 if in 16.00.00.to.19.59.59      |
+|                  | hour_of_admission_4h_band.20.00.00.to.23.59.59           |               |  Code 1 if in 20.00.00.to.23.59.59      |
+|Day of week of admission | Code as following      | Monday – Sunday             | One hot encoding (Sunday as reference)              |
+|                 | day_of_week_of_admission.Monday      |              | Code 1 if Monday             |
+|                 | day_of_week_of_admission.Saturday      |              | Code 1 if Saturday               |
+|                 | day_of_week_of_admission.Sunday      |              | Code 1 if Sunday             |
+|                 | day_of_week_of_admission.Thursday      |              | Code 1 if Thursday               |
+|                 | day_of_week_of_admission.Tuesday      |              | Code 1 if Tuesday              |
+|                 | day_of_week_of_admission.Wednesday      |              | Code 1 if Wednesday              |
 |Congestive heart failure  | congestive_heart_failure     |     Yes or No                | 0-No, 1-Yes                   |
 |hypertension             | hypertension                  |      Yes or No               | 0-No, 1-Yes                   |
 |Atrial fibrillation (AF)  | atrial_fibrillation          |    Yes or No                  | 0-No, 1-Yes                  |
 |diabetes                 | diabetes                      |      Yes or No                  | 0-No, 1-Yes                |
-|Previous stroke/tia    | previous_stroke_tia              |   No, No but, Unknown, Yes     | One hot encoding           |
-|Prior anticoagulation if AF*| prior_anticoagulation_if_Afib |                             |                             |
+|Previous stroke/tia    | previous_stroke_tia           |   No,  Yes     | 0-No, 1-Yes          |
+|Prior anticoagulation if AF*|     prior_anticoagulation_if_Afib |    No, No but, Unknown, Yes| One hot encoding (No as reference)      |
+|    | prior_anticoagulation_if_Afib.No.but              |        | Code 1 if No but        |
+|    | prior_anticoagulation_if_Afib.Unknown              |        | Code 1 if Unknown          |
+|    | prior_anticoagulation_if_Afib.Yes              |        | Code 1 if Yes           |
 |Modified Rankin Scale pre stroke| rankin_scale_prestroke  |                             | 0-5                         |
 |NIHSS at arrival   |      nihss_arrival                   | Sum of imputed NIHSS components | 0-42                |
 |level of consciousness|  nihss_loss_of_consciousness      |                                  | 0-3           |
@@ -80,8 +93,10 @@ The 30 required variables, including the name, coding of the variables are liste
 |best language     |  nihss_best_language                |                             |                0-3     |
 |dysarthria        |  nihss_dysarthria                   |                            |               0-2       |
 |extinction        |  nihss_extinction                   |                            |                  0-2     |
-|Type of stroke    |  type_of_stroke                     |    Infarction, Primary Intracerebral Haemorrhage, Unknown |    One hot encoding             |
-
+|Type of stroke    |  Code as following   |    Infarction, Primary Intracerebral Haemorrhage, Unknown |    One hot encoding (Infarction as reference)  |
+|        |  type_of_stroke.Primary.Intracerebral.Haemorrhage   |    |  Code 1 if Primary Intracerebral Haemorrhage    |
+|        |  type_of_stroke.Uknown                     |    |     | Code 1 if Unknown
+|       30-day mortality   |  mortality_30_day            |    Died within 30 days(Yes and no)  |    0-No, 1-Yes           |
 
 
 #### Important
