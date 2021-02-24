@@ -48,6 +48,12 @@ The 30 required variables, including the name, coding of the variables are liste
 |       30-day mortality   |  mortality_30_day            |    Died within 30 days(Yes and no)  |    0-No, 1-Yes           |
 |         Age              | Age_Groups_by5              |      band by 5 from age 15 to age 125     |  levels: 0-20      |
 |               Sex        | Male                        |   Female and Male                |   0-Female, 1-Male           |
+|               Ethnicity   | Code as following       |   White, Black, Asian, Mixed, Other, Uknown           |   One hot encoding (Asian reference)|
+|                         | Ethnicity.Black              |                                   |   if Black, code 1|
+|                         | Ethnicity.Mixed              |                               |   if Mixed, code 1 |
+|                         | Ethnicity.Other              |                               |   if Other, code 1 |
+|                         | Ethnicity.Unknown              |                               |   if Uknown, code 1 |
+|                         | Ethnicity.White              |                               |   if White, code 1 |
 |Inpatient at time of stroke |Inpatient_at_time_of_stroke |         Yes or No                    | 0-No, 1-Yes            |
 |Hour of admission   | hour_of_admission_4h_band          | 6 Levels, 4 hours band              | One hot encoding       |
 |Day of week of admission | day_of_week_of_admission      | Monday – Sunday             | One hot encoding               |
