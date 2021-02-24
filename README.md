@@ -48,7 +48,7 @@ The 30 required variables, including the name, coding of the variables are liste
 |         Age              | Age_Groups_by5              |      band by 5 from age 15 to age 125     |  levels: 0-20      |
 |               Sex        | Male                        |   Female and Male                |   0-Female, 1-Male           |
 |               Ethnicity   | Code as following       |   White, Black, Asian, Mixed, Other, Uknown           |   One hot encoding (Asian reference)|
-|                         | Ethnicity.Black              |                                   |   if Black, code 1|
+|                         | Ethnicity.Black              |                                   |  Code 1 if Black |
 |                         | Ethnicity.Mixed              |                               |   Code 1 if Mixed  |
 |                         | Ethnicity.Other              |                               |    Code 1 if Other |
 |                         | Ethnicity.Unknown              |                               |   Code 1 if Uknown |
@@ -95,7 +95,7 @@ The 30 required variables, including the name, coding of the variables are liste
 |extinction        |  nihss_extinction                   |                            |                  0-2     |
 |Type of stroke    |  Code as following   |    Infarction, Primary Intracerebral Haemorrhage, Unknown |    One hot encoding (Infarction as reference)  |
 |        |  type_of_stroke.Primary.Intracerebral.Haemorrhage   |    |  Code 1 if Primary Intracerebral Haemorrhage    |
-|        |  type_of_stroke.Uknown                     |    |     | Code 1 if Unknown
+|        |  type_of_stroke.Uknown                     |    |  Code 1 if Unknown   | 
 |       30-day mortality   |  mortality_30_day            |    Died within 30 days(Yes and no)  |    0-No, 1-Yes           |
 
 
