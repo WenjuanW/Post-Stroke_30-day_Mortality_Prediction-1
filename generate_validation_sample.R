@@ -1,7 +1,9 @@
-# Generate a ramdon validation dataset
+# Objective: Generate a ramdon validation dataset according to how the real dataset look like
+# Author Wenjuan Wang
 
 
-# The number of cases n
+
+# n is the number of cases/patients that one wants to generate
 n = 2000
 
 Age_Groups_by5 <- array(sample(21, n, replace = TRUE)) -1
@@ -20,7 +22,6 @@ Ethnicity.White <- M_ethnicity[,5]
 Inpatient_at_time_of_stroke <- array(sample(c(0,1), n, replace = TRUE)) 
 
 #Generate a one hot encoding matrix of 6 category for hour of admission
-
 M_hour <- matrix(0,n,6)
 M_hour[cbind(1:n, sample(1:6, 6, rep=TRUE))] <- 1
 
@@ -77,7 +78,7 @@ nihss_dysarthria               <- array(sample(3, n, replace = TRUE)) - 1
 nihss_extinction            <- array(sample(3, n, replace = TRUE)) - 1  
 
   
-
+# nihss is the sum of all the subcomponents above
 nihss_arrival <- rowSums(cbind(nihss_loss_of_consciousness,nihss_answers_questions,nihss_obeys_commands,
                          nihss_best_gaze,nihss_visual_deficits,nihss_facial_weakness,
                          nihss_left_arm_weakness,nihss_right_arm_weakness,nihss_ataxia,nihss_sensory_loss,
