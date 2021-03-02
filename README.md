@@ -112,7 +112,7 @@ The 30 required variables, including the name, coding of the variables are liste
 * For testing purposes, similated data was generated for validation data. These values are randomly generated and are not representative of the training dataset.
 * To test all models on the simulated dataset, run:
 
-### Missing data handling
+### How to impute the Missing data in the validation dataset
 
 * Missing data in the training set were imputed as the following:
    + New category for ....
