@@ -77,7 +77,6 @@ The 30 required variables, including the name, coding of the variables are liste
 |    | prior_anticoagulation_if_Afib.Unknown              |        | Code 1 if Unknown          |
 |    | prior_anticoagulation_if_Afib.Yes              |        | Code 1 if Yes           |
 |Modified Rankin Scale pre stroke| rankin_scale_prestroke  |                             | 0-5                         |
-|NIHSS at arrival   |      nihss_arrival                   | Sum of imputed NIHSS components | 0-42                |
 |level of consciousness|  nihss_loss_of_consciousness      |                                  | 0-3           |
 |answers questions |  nihss_answers_questions             |                                | 0-2             |
 |obeys commands    |  nihss_obeys_commands               |                           |      0-2              |
@@ -93,6 +92,7 @@ The 30 required variables, including the name, coding of the variables are liste
 |best language     |  nihss_best_language                |                             |                0-3     |
 |dysarthria        |  nihss_dysarthria                   |                            |               0-2       |
 |extinction        |  nihss_extinction                   |                            |                  0-2     |
+|NIHSS at arrival   |      nihss_arrival                   | Sum of imputed NIHSS components | 0-42                |
 |Type of stroke    |  Code as following   |    Infarction, Primary Intracerebral Haemorrhage, Unknown |    One hot encoding (Infarction as reference)  |
 |        |  type_of_stroke.Primary.Intracerebral.Haemorrhage   |    |  Code 1 if Primary Intracerebral Haemorrhage    |
 |        |  type_of_stroke.Uknown                     |    |  Code 1 if Unknown   | 
@@ -102,7 +102,7 @@ The 30 required variables, including the name, coding of the variables are liste
 #### Important
 
 * All variables/features must be measured within 24 hours after hospital admission
-* All variable names and coding have to be exactly the same as the above table
+* All variable names and coding have to be exactly the same as the above table, indcluding the sequence
 
 
 ### Software enviornment
