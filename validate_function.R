@@ -1,4 +1,4 @@
-##############
+###################################
 # Title: validation function for externally validate other datasets
 # Author: Wenjuan Wang
 
@@ -6,38 +6,105 @@
 # Output the performace of the pretrained models on the validation dataset
 # The output is a list including Brier Score, AUC, calibration plots, 
 # calibration-in-the-large, calibration slope, 95% confidence interval of the above and decision curve analysis 
+####################################
 
-
-# libraries needed
+# libraries needed------------------------------------------------------
 library(tidyr)
-install.packages("lifecycle", type = "source")
+library(purrr)
+library(dplyr)
+library(rms)
+library(caret)
+library(readr)
+library(xgboost)
+library(mlr)
+library(pROC)
 
-# Load validation dataset ------------------------
-validation_dataset <- read_csv(file="validation_sample.csv")   # the dataset that one wants to externally validate
+# Functions needed-------------------------------------------------------
 
-# Load pre-trained models --------------------------------
-xgboost_model <- readRDS("xgboost_model.RDS")
+### functions for calculating 95% confidence interval by bootstrapping
+boot_val <- function(data){
+  set.seed(48572)
+  out <- list()
+  data <- as.data.frame(data)
+  for(i in 1:500){
+    df <- sample_n(data, nrow(data), replace = TRUE)
+    out[[i]] <- val.prob(df[,1],df[,2])
+  }
+  return(out)
+}
 
-# Confirm that validation dataset contains required features/outcomes 
+
+calc_ci <- function(metric, boot_vals, n){
+  x <- unlist(map(boot_vals, `[`, c(metric)))
+  paste0("(", round(quantile(x, 0.025), n), " to ", 
+         round(quantile(x, 0.975), n), ")")
+}
+
+### functions for calculating net benefit for decision curve analysis
+
+netBenefit <- function(predProb, trueClass){
+  
+  netBenefit <- matrix(0,nrow = 100,ncol = 1)
+  
+  for (i in 1:100) {
+    pt <- i*0.01
+    predClass <-  ifelse(predProb >= pt, 1,0)
+    pred <- factor(predClass,levels = c(0,1))
+    
+    truth <- factor(trueClass,levels = c(0,1))
+    
+    confuMatrix <- confusionMatrix(pred,truth)
+    a <- confuMatrix$table[2,2]/length(predClass)    # true positive count/n total number = Detection Rate
+    b <-  confuMatrix$table[2,1]/length(predClass)   # false positive count/n total number = Detection prevalence - detection rate
+    netBenefit[i] <- a - b*pt/(1-pt)
+  }
+  
+  return(netBenefit)
+  
+}
+
+# net benefit for treating all
+netBenefit_all <- function(FPrate,pt){
+  1 - FPrate/(1-pt*0.01)
+}
 
 
 
-# externally validate each model ---------------------------
+# Load validation dataset ------------------------------------------------------
+validation_dataset <- read.csv(file="validation_sample.csv")[,-1]   # the dataset that one wants to externally validate
+
+# Load pre-trained models -----------------------------------------------------
+xgboost_model <- readRDS("XGBoost_pretrained_model.RDS")
+
+
+# externally validate each model -----------------------------------------------
 # predict on the validation dateset
 
-validation_dataset_xgb <- validation_dataset
-validation_dataset_xgb$mortality_30_day %<>% as.factor()
-
+validation_dataset$mortality_30_day <- validation_dataset$mortality_30_day %>% as.factor()
 testtask <- makeClassifTask(data = as.data.frame(validation_dataset_xgb),target = "mortality_30_day")
-
 prob_xgb <- predict(xgboost_model,testtask, type = "prob")
+
+# AUC and 95% CI
 roc_xgb <- roc(validation_dataset_xgb$mortality_30_day ~ prob_xgb$data$prob.1, plot = FALSE, print.auc = TRUE)
-as.numeric(roc_xgb$auc)
-ci.auc(validation_dataset_xgb$mortality_30_day, prob_xgb$data$prob.1) 
+AUC <- as.numeric(roc_xgb$auc)
+AUC_95CI <- ci.auc(validation_dataset_xgb$mortality_30_day, prob_xgb$data$prob.1) 
+AUC_and_95CI <- paste('The AUC and 95% Confidence Interval are:', round(AUC,3), ' (', round(AUC_95CI[1],3),'to',round(AUC_95CI[3],3),')')
+print(AUC_and_95CI)
 
-# Brier score, calibration-in-the-large and calibration slope
 
-# Calibration plot
+# Brier score, calibration-in-the-large and calibration slope and 95% confidence interval
+
+# calibration plot, Brier score, calibration-in-the-large and calibration slope
+res_xgboost = val.prob(prob_xgb$data$prob.1, validation_dataset$mortality_30_day)
+round(res_xgboost,3)
+
+
+
+
+
+
 
 # Decision curve analysis
+
+
 
