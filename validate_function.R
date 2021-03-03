@@ -18,7 +18,7 @@ library(readr)
 library(xgboost)
 library(mlr)
 library(pROC)
-
+library(e1071)
 # Functions needed-------------------------------------------------------
 
 ### functions for calculating 95% confidence interval by bootstrapping
@@ -95,16 +95,43 @@ print(AUC_and_95CI)
 # Brier score, calibration-in-the-large and calibration slope and 95% confidence interval
 
 # calibration plot, Brier score, calibration-in-the-large and calibration slope
-res_xgboost = val.prob(prob_xgb$data$prob.1, validation_dataset$mortality_30_day)
-round(res_xgboost,3)
+res_xgboost <- val.prob(prob_xgb$data$prob.1, validation_dataset$mortality_30_day)
 
 
+# Bootstrapping different samples
+data_bootstrap <- cbind(prob_xgb$data$prob.1, validation_dataset$mortality_30_day)
+xgboost_val <- boot_val(data_bootstrap)
 
+# Brier Score and 95% CI 
+xgboost_brier <- round(res_xgboost['Brier'],3) 
+xgboost_brier_boot <- unlist(map(xgboost_val, `[`, c("Brier"))) %>% as.numeric()    
+xgboost_brier_boot_ci <- calc_ci("Brier",   xgboost_val, 3)
+xgboost_brier_and_95CI <- paste('The Brier Score and 95% Confidence Interval are:', xgboost_brier, ' :', xgboost_brier_boot_ci)
+print(xgboost_brier_and_95CI)
 
+# Calibration-in-the-large and 95% CI
+xgboost_calibration_in_the_large <- round( res_xgboost['Intercept'],3)
+xgboost_intercept_boot_ci <- calc_ci("Intercept",   xgboost_val, 3)
+xgboost_intercept_and_95CI <- paste('The Calibration-in-the-large and 95% Confidence Interval are:', xgboost_calibration_in_the_large, ' :', xgboost_intercept_boot_ci)
+print(xgboost_intercept_and_95CI)
 
+# Calibration slope and 95% CI
+xgboost_calibration_slope <- round(res_xgboost['Slope'],3) 
+xgboost_slope_boot_ci <- calc_ci("Slope",   xgboost_val, 3)
+xgboost_slope__and_95CI <- paste('The Calibration Slope and 95% Confidence Interval are:',xgboost_calibration_slope, ' :', xgboost_slope_boot_ci)
+print(xgboost_slope__and_95CI)
 
 
 # Decision curve analysis
 
+netBenefit_xgb <- netBenefit(prob_xgb$data$prob.1,validation_dataset$mortality_30_day )
+
+FPrate <- length(which(validation_dataset$mortality_30_day==0))/length(validation_dataset$mortality_30_day)
+FPrate_test <- netBenefit_all(FPrate,1:100)
 
 
+plot(netBenefit_xgb,type="l",col="blue",ylim = c(-0.2,0.6),lty=1,xlab = "Threshold probability in %",ylab = "Net Benefit",main = 'Decision Curves')
+lines(FPrate_test,lty=3)
+abline(h=0, col="blue")
+legend(60,0.53, legend=c("XGBoost","Treating all","Y = 0, Treating none"),
+       col=c("blue","black","blue"),lty = c(1,3,1),cex = 0.75)
