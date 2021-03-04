@@ -41,6 +41,8 @@ calc_ci <- function(metric, boot_vals, n){
          round(quantile(x, 0.975), n), ")")
 }
 
+
+
 ### function for calculating Brier Score, AUC, Calibraiton-in-the-large and calibration slope with 95% Confidence Interval
 ### Input: Predicted probability (pred_prob) and True binary outcome (y)
 
@@ -148,28 +150,32 @@ prob_LR_elasnet_int <- LR_elasticnet_int_model %>% predict(newdata = validation_
 LR_elasticnet_ineraction_performance <- performance_function(prob_LR_elasnet_int$`1`, validation_dataset$mortality_30_day)
 
 
-# Decision curve analysis
-netBenefit_xgb <- netBenefit(prob_xgb$data$prob.1,validation_dataset$mortality_30_day )
-
-FPrate <- length(which(validation_dataset$mortality_30_day==0))/length(validation_dataset$mortality_30_day)
-FPrate_test <- netBenefit_all(FPrate,1:100)
-
-
-
 ###print the results--------------------------------------------------------------
 print(xgboost_performance)
 print(LR_elasticnet_ineraction_performance)
 
 
+### calibration plots----------------------------------------
 
-### calibration plots and decision curves-----------------------------------------
-par(mfrow=c(1,2))
-val.prob(prob_xgb$data$prob.1, as.numeric(validation_dataset$mortality_30_day))
+# XGBoost
+val.prob(prob_xgboost$data$prob.1, as.numeric(validation_dataset$mortality_30_day))
+# Right LR with elastic net and interaction terms
+val.prob(prob_LR_elasnet_int$`1`, as.numeric(validation_dataset$mortality_30_day))
 
 
-plot(netBenefit_xgb,type="l",col="blue",ylim = c(-0.2,0.6),lty=1,xlab = "Threshold probability in %",ylab = "Net Benefit")
+
+plot.new()
+
+# Decision curve analysis
+netBenefit_xgboost <- netBenefit(prob_xgboost$data$prob.1,validation_dataset$mortality_30_day )
+netBenefit_LR_elasticnet_interaction <- netBenefit(prob_LR_elasnet_int$`1`,validation_dataset$mortality_30_day )
+FPrate <- length(which(validation_dataset$mortality_30_day==0))/length(validation_dataset$mortality_30_day)
+FPrate_test <- netBenefit_all(FPrate,1:100)
+
+plot(netBenefit_xgboost,type="l",col="blue",ylim = c(-0.2,0.6),lty=1,xlab = "Threshold probability in %",ylab = "Net Benefit")
+lines(netBenefit_LR_elasticnet_interaction, col="red",lty=1)
 lines(FPrate_test,lty=3)
 abline(h=0, col="blue")
-legend(50,0.53, legend=c("XGBoost","Treating all","Y = 0, Treating none"),
-       col=c("blue","black","blue"),lty = c(1,3,1),cex = 0.75)
+legend(50,0.53, legend=c("XGBoost","LR with elastic net and interaction terms","Treating all","Y = 0, Treating none"),
+       col=c("blue", "red","black","blue"),lty = c(1,1,3,1),cex = 0.75)
 
