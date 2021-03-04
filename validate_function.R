@@ -35,12 +35,62 @@ boot_val <- function(data){
   return(out)
 }
 
-
 calc_ci <- function(metric, boot_vals, n){
   x <- unlist(map(boot_vals, `[`, c(metric)))
   paste0("(", round(quantile(x, 0.025), n), " to ", 
          round(quantile(x, 0.975), n), ")")
 }
+
+### function for calculating Brier Score, AUC, Calibraiton-in-the-large and calibration slope with 95% Confidence Interval
+### Input: Predicted probability (pred_prob) and True binary outcome (y)
+
+performance_function <- function(pred_prob,y){
+  
+
+  # AUC and 95% CI
+  roc <- roc(y ~ pred_prob, plot = FALSE, print.auc = TRUE)
+  AUC <- as.numeric(roc$auc)
+  AUC_95CI <- ci.auc(y, pred_prob) 
+  AUC_and_95CI <- paste( round(AUC,3), ' (', round(AUC_95CI[1],3),'to',round(AUC_95CI[3],3),')')
+  
+  
+  
+  # Brier score, calibration-in-the-large and calibration slope and 95% confidence interval
+  
+  # calibration plot, Brier score, calibration-in-the-large and calibration slope
+  res <- val.prob(pred_prob, as.numeric(y))
+  
+  
+  # Bootstrapping different samples
+  data_bootstrap <- cbind(pred_prob, y)
+  boot_val <- boot_val(data_bootstrap)
+  
+  # Brier Score and 95% CI 
+  brier <- round(res['Brier'],3) 
+  brier_boot <- unlist(map(boot_val, `[`, c("Brier"))) %>% as.numeric()    
+  brier_boot_ci <- calc_ci("Brier",   boot_val, 3)
+  brier_and_95CI <- paste( brier, brier_boot_ci)
+  
+  
+  # Calibration-in-the-large and 95% CI
+  calibration_in_the_large <- round( res['Intercept'],3)
+  intercept_boot_ci <- calc_ci("Intercept", boot_val, 3)
+  intercept_and_95CI <- paste(calibration_in_the_large, intercept_boot_ci)
+  
+  # Calibration slope and 95% CI
+  calibration_slope <- round(res['Slope'],3) 
+  slope_boot_ci <- calc_ci("Slope",   boot_val, 3)
+  slope_and_95CI <- paste(calibration_slope, slope_boot_ci)
+
+    
+  performance_List <- list("AUC" = AUC_and_95CI, "Brier" = brier_and_95CI, "Calibration-in-the-large" = intercept_and_95CI, "Calibration-Slope" = slope_and_95CI)
+  return(performance_List)
+
+  
+}
+
+
+
 
 ### functions for calculating net benefit for decision curve analysis
 
@@ -77,54 +127,28 @@ validation_dataset <- read.csv(file="validation_sample.csv")[,-1]   # the datase
 
 # Load pre-trained models -----------------------------------------------------
 xgboost_model <- readRDS("XGBoost_pretrained_model.RDS")
+LR_elasticnet_int_model <- readRDS("LR_elasticnet_interaction_pretrained_model.RDS")
 
 
 # externally validate each model -----------------------------------------------
-# predict on the validation dateset
 
-validation_dataset$mortality_30_day <- validation_dataset$mortality_30_day %>% as.factor()
+# predict on the validation dateset with XGBoost
+validation_dataset_xgboost <- validation_dataset
+validation_dataset_xgboost$mortality_30_day <- validation_dataset_xgboost$mortality_30_day %>% as.factor()
+testtask <- makeClassifTask(data = as.data.frame(validation_dataset_xgboost),target = "mortality_30_day")
+prob_xgboost <- predict(xgboost_model,testtask, type = "prob")
 
-testtask <- makeClassifTask(data = as.data.frame(validation_dataset),target = "mortality_30_day")
-prob_xgb <- predict(xgboost_model,testtask, type = "prob")
-
-# AUC and 95% CI
-roc_xgb <- roc(validation_dataset$mortality_30_day ~ prob_xgb$data$prob.1, plot = FALSE, print.auc = TRUE)
-AUC <- as.numeric(roc_xgb$auc)
-AUC_95CI <- ci.auc(validation_dataset$mortality_30_day, prob_xgb$data$prob.1) 
-AUC_and_95CI <- paste('The AUC and 95% Confidence Interval for XGBoost are:', round(AUC,3), ' (', round(AUC_95CI[1],3),'to',round(AUC_95CI[3],3),')')
+xgboost_performance <- performance_function(prob_xgboost$data$prob.1, validation_dataset$mortality_30_day)
 
 
+# predict on the validation dateset with LR with elastic net and interaction terms
+validation_interaction <- model.matrix(mortality_30_day ~.^2, validation_dataset)[,-1]
+prob_LR_elasnet_int <- LR_elasticnet_int_model %>% predict(newdata = validation_interaction, type = "prob")
 
-# Brier score, calibration-in-the-large and calibration slope and 95% confidence interval
-
-# calibration plot, Brier score, calibration-in-the-large and calibration slope
-res_xgboost <- val.prob(prob_xgb$data$prob.1, as.numeric(validation_dataset$mortality_30_day))
-
-
-# Bootstrapping different samples
-data_bootstrap <- cbind(prob_xgb$data$prob.1, validation_dataset$mortality_30_day)
-xgboost_val <- boot_val(data_bootstrap)
-
-# Brier Score and 95% CI 
-xgboost_brier <- round(res_xgboost['Brier'],3) 
-xgboost_brier_boot <- unlist(map(xgboost_val, `[`, c("Brier"))) %>% as.numeric()    
-xgboost_brier_boot_ci <- calc_ci("Brier",   xgboost_val, 3)
-xgboost_brier_and_95CI <- paste('The Brier Score and 95% Confidence Interval for XGBoost are:', xgboost_brier, xgboost_brier_boot_ci)
-
-
-# Calibration-in-the-large and 95% CI
-xgboost_calibration_in_the_large <- round( res_xgboost['Intercept'],3)
-xgboost_intercept_boot_ci <- calc_ci("Intercept",   xgboost_val, 3)
-xgboost_intercept_and_95CI <- paste('The Calibration-in-the-large and 95% Confidence Interval for XGBoost are:', xgboost_calibration_in_the_large, xgboost_intercept_boot_ci)
-
-# Calibration slope and 95% CI
-xgboost_calibration_slope <- round(res_xgboost['Slope'],3) 
-xgboost_slope_boot_ci <- calc_ci("Slope",   xgboost_val, 3)
-xgboost_slope__and_95CI <- paste('The Calibration Slope and 95% Confidence Interval for XGBoost are:',xgboost_calibration_slope, xgboost_slope_boot_ci)
+LR_elasticnet_ineraction_performance <- performance_function(prob_LR_elasnet_int$`1`, validation_dataset$mortality_30_day)
 
 
 # Decision curve analysis
-
 netBenefit_xgb <- netBenefit(prob_xgb$data$prob.1,validation_dataset$mortality_30_day )
 
 FPrate <- length(which(validation_dataset$mortality_30_day==0))/length(validation_dataset$mortality_30_day)
@@ -132,13 +156,13 @@ FPrate_test <- netBenefit_all(FPrate,1:100)
 
 
 
-###print the results---------------------------------------
-print(xgboost_brier_and_95CI)
-print(AUC_and_95CI)
-print(xgboost_intercept_and_95CI)
-print(xgboost_slope__and_95CI)
+###print the results--------------------------------------------------------------
+print(xgboost_performance)
+print(LR_elasticnet_ineraction_performance)
 
 
+
+### calibration plots and decision curves-----------------------------------------
 par(mfrow=c(1,2))
 val.prob(prob_xgb$data$prob.1, as.numeric(validation_dataset$mortality_30_day))
 
