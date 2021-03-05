@@ -5,7 +5,7 @@
 * This repository provides pre-trained models for future studies to externally validate the trained models in a paper
 * Please get in touch if you would like to collaborate on externally validate this post-stroke 30-day mortality prediction model
    + Email: wenjuan.wang@kcl.ac.uk
-* If you use code/trained models from this repository, please cite the pre-print as a condition of use
+* If you use code/trained models from this repository, please cite the paper as a condition of use.
 
 ## About the models
 
@@ -13,30 +13,31 @@ The file validation.R validates five models that were initially trained on SSNAP
 
 The script imports a validation dateset (validation.csv) and generates the following:
 
-1. Evaluate discrimination (area under the ROC curve (AUC)) of the pre-trained models on the validation dataset;
-2. Evaluate the Brier Score of the pre-trained models on the validation dataset;
+1. Evaluate the Brier Score of the pre-trained models on the validation dataset;
+2. Evaluate discrimination (area under the ROC curve (AUC)) of the pre-trained models on the validation dataset;
 3. Evaluate calibration (calibration-in-the-large, calibration slop and calibration plots) on the validation dataset;
-4. Generate the decision curve with net benefit at every probability thresthold;
-5. Export the above results in a file
+4. Analysis of the decision curves showing net benefit at every probability threshold.
+
 
 Note:
 * The code does not perform any training or cross-validation;
-* Imputation was done with median/mean values of each variable (default values are from the training set of the original model due to the assumption that the data for validation are not known beforehand);
+* The code does not do imputation. 
+* Imputation could be done with median/mean values of each variable 
+
 
 ## How to use this repository
 
-1. Prepare your validation dataset (named validation.csv) according to the below specification.
-2. Run validation.R.
-3. Email the resulting file to wenjuan.wang@kcl.ac.uk.
+1. Prepare your validation dataset according to the below specification;
+2. Run validation_function.R using your own validation dataset;
+3. We would appreciate if you emial the results to wenjuan.wang@kcl.ac.uk.
 
 ### Measures needed to validate these models
 
 #### Outcomes
 
-* The outcome is in-hospital 30-day mortality after stroke
-* Each outcome is coded as 1 if the patient died within 30 days in hospital after stroke
-
-In the SSNAP sample (n=358588), the event rate was: 12.4%
+* The outcome is in-hospital 30-day mortality after stroke;
+* Each outcome is coded as 1 if the patient died within 30 days in hospital after stroke;
+* In the SSNAP sample (n=358588), the event rate was: 12.4%.
 
 #### Required Variables
 
@@ -102,22 +103,22 @@ The 30 required variables, including the name, coding of the variables are liste
 #### Important
 
 * All variables/features must be measured within 24 hours after hospital admission
-* All variable names and coding have to be exactly the same as the above table, indcluding the sequence
+* All variable names and coding have to be exactly the same as the above table, including the sequence
 
 
 ### Software enviornment
 
-* Data cleaning and training were performed in R 3...
-* Required packages are 
-* For testing purposes, similated data was generated for validation data. These values are randomly generated and are not representative of the training dataset.
-* To test all models on the simulated dataset, run:
+* Data cleaning and training were performed in R 3.0.2
+* Required packages are shown in validation_function.R;
+* For testing purposes, validation_sample was randomly generated according to the above table. These values are randomly generated and are not representative of the training dataset.
+
 
 ### How to impute the Missing data in the validation dataset
 
 * Missing data in the training set were imputed as the following:
-   + New category for ....
-   + MICE for NIHSS components and then NIHSS arrival was imputed by adding the NIHSS components
-* Missing data in the validation set will use mean/median of the validation set (many cases) or default values from training set.
+   + New category for Unknown as stated in the above Table;
+   + NIHSS arrival was imputed by adding the NIHSS components and the components were imputed with median;
+* Missing data in the validation set will use mean for continual numerical variable and median for categorical variable in the validation set (many cases).
 
 
 
