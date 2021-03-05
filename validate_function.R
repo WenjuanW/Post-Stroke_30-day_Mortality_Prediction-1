@@ -4,11 +4,11 @@
 
 # Input the validation_sample.csv dataset, 
 # Output the performace of the pretrained models on the validation dataset
-# The output is a list including Brier Score, AUC, calibration plots, 
-# calibration-in-the-large, calibration slope, 95% confidence interval of the above and decision curve analysis 
+# The output is a list including Brier Score, AUC, calibration-in-the-large, calibration slope, 95% confidence interval of the above 
+# and plots for calibration curves and decision curves 
 ####################################
 
-# libraries needed------------------------------------------------------
+### libraries needed------------------------------------------------------
 library(tidyr)
 library(purrr)
 library(dplyr)
@@ -21,9 +21,9 @@ library(pROC)
 library(e1071)
 
 
-# Functions needed-------------------------------------------------------
+### Functions needed-------------------------------------------------------
 
-### functions for calculating 95% confidence interval by bootstrapping
+# functions for calculating 95% confidence interval by bootstrapping
 boot_val <- function(data){
   set.seed(48572)
   out <- list()
@@ -43,25 +43,19 @@ calc_ci <- function(metric, boot_vals, n){
 
 
 
-### function for calculating Brier Score, AUC, Calibraiton-in-the-large and calibration slope with 95% Confidence Interval
-### Input: Predicted probability (pred_prob) and True binary outcome (y)
+# function for calculating Brier Score, AUC, Calibraiton-in-the-large and calibration slope with 95% Confidence Interval
+# Input: Predicted probability (pred_prob) and True binary outcome (y)
 
 performance_function <- function(pred_prob,y){
-  
 
   # AUC and 95% CI
   roc <- roc(y ~ pred_prob, plot = FALSE, print.auc = TRUE)
   AUC <- as.numeric(roc$auc)
   AUC_95CI <- ci.auc(y, pred_prob) 
   AUC_and_95CI <- paste( round(AUC,3), ' (', round(AUC_95CI[1],3),'to',round(AUC_95CI[3],3),')')
-  
-  
-  
+
   # Brier score, calibration-in-the-large and calibration slope and 95% confidence interval
-  
-  # calibration plot, Brier score, calibration-in-the-large and calibration slope
   res <- val.prob(pred_prob, as.numeric(y))
-  
   
   # Bootstrapping different samples
   data_bootstrap <- cbind(pred_prob, y)
@@ -73,7 +67,6 @@ performance_function <- function(pred_prob,y){
   brier_boot_ci <- calc_ci("Brier",   boot_val, 3)
   brier_and_95CI <- paste( brier, brier_boot_ci)
   
-  
   # Calibration-in-the-large and 95% CI
   calibration_in_the_large <- round( res['Intercept'],3)
   intercept_boot_ci <- calc_ci("Intercept", boot_val, 3)
@@ -84,11 +77,8 @@ performance_function <- function(pred_prob,y){
   slope_boot_ci <- calc_ci("Slope",   boot_val, 3)
   slope_and_95CI <- paste(calibration_slope, slope_boot_ci)
 
-    
   performance_List <- list("AUC" = AUC_and_95CI, "Brier" = brier_and_95CI, "Calibration-in-the-large" = intercept_and_95CI, "Calibration-Slope" = slope_and_95CI)
   return(performance_List)
-
-  
 }
 
 
@@ -124,15 +114,15 @@ netBenefit_all <- function(FPrate,pt){
 
 
 
-# Load validation dataset ------------------------------------------------------
+### Load validation dataset ------------------------------------------------------
 validation_dataset <- read.csv(file="validation_sample.csv")[,-1]   # the dataset that one wants to externally validate
 
-# Load pre-trained models -----------------------------------------------------
+### Load pre-trained models -----------------------------------------------------
 xgboost_model <- readRDS("XGBoost_pretrained_model.RDS")
 LR_elasticnet_int_model <- readRDS("LR_elasticnet_interaction_pretrained_model.RDS")
 
 
-# externally validate each model -----------------------------------------------
+### externally validate each model -----------------------------------------------
 
 # predict on the validation dateset with XGBoost
 validation_dataset_xgboost <- validation_dataset
@@ -150,7 +140,7 @@ prob_LR_elasnet_int <- LR_elasticnet_int_model %>% predict(newdata = validation_
 LR_elasticnet_ineraction_performance <- performance_function(prob_LR_elasnet_int$`1`, validation_dataset$mortality_30_day)
 
 
-###print the results--------------------------------------------------------------
+### print the results--------------------------------------------------------------
 print(xgboost_performance)
 print(LR_elasticnet_ineraction_performance)
 
@@ -176,6 +166,6 @@ plot(netBenefit_xgboost,type="l",col="blue",ylim = c(-0.2,0.6),lty=1,xlab = "Thr
 lines(netBenefit_LR_elasticnet_interaction, col="red",lty=1)
 lines(FPrate_test,lty=3)
 abline(h=0, col="blue")
-legend(50,0.53, legend=c("XGBoost","LR with elastic net and interaction terms","Treating all","Y = 0, Treating none"),
+legend(45,0.53, legend=c("XGBoost","LR with elastic net and interaction terms","Treating all","Y = 0, Treating none"),
        col=c("blue", "red","black","blue"),lty = c(1,1,3,1),cex = 0.75)
 
