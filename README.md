@@ -122,7 +122,9 @@ The 30 required variables, including the name, coding of the variables are liste
 
 
 
+### Hyperparemeter tuning strategy for the trained mdoels
 
+For LR with elastic net, we used the “train” function from caret R package, with 5-fold CV and 10 grids for each tuning parameters. For XGBoost, we tuned with 5-fold CV and 100 random combinations of all hyperparameters in certain intervals, i.e. maximum depth of each tree to be 3 to 10, minimum child weight to be 1 to 10, gamma (regularisation parameter) to be 0 to 1, the proportion of observations supplied to a tree to be 0.5 to 1, the proportion of features supplied to a tree to be 0.5 to 1.
 
 
 
